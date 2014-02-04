@@ -1,0 +1,85 @@
+#!/bin/bash
+
+[ "$TRACE" == 'true' ] && set -x
+
+DRIVER_NAME=_driver
+
+usage() {
+  cat << EOF
+usage: bevel -d <bindir> -c <subcommands> -n <main_command>
+EOF
+}
+
+while getopts ":hd:c:n:" option;
+do
+ case "$option" in
+  d)
+   BINDIR="$OPTARG"
+   ;;
+  c)
+   SUBCOMMANDS="$OPTARG"
+   ;;
+  n)
+   COMMAND_NAME="$OPTARG" 
+   ;;
+  h)
+   usage && exit
+   ;;
+  \?)
+   echo " bevel: error: invalid option '-$OPTARG'" >&2
+   exit 1
+   ;;
+ esac
+done
+
+if [ -z "$BINDIR" ] || [ -z "$COMMAND_NAME" ]
+then
+  echo ' bevel: error: must pass both the -c, -d, and -n options' >&2
+  exit 2
+fi
+
+[ ! -d "$BINDIR" ] && echo " bevel: error: no such directory '$BINDIR'" && exit 2
+
+_debug() {
+  [ "$DEBUG" == 'true' ] && echo " bevel: debug: $1" >&2
+}
+
+_valid_command() {
+  local command="$1"
+  echo "$command" | grep -q '^[a-zA-Z]'
+  RET=$?
+  [ -d "$command" ] || [ -f "$command" ]
+  RET=$((RET+$?))
+
+  _debug "command file: $(readlink -f $command)"
+  return $RET
+}
+
+_command_error() {
+  echo " $COMMAND_NAME: error: $1" >&2
+}
+
+cd "$BINDIR"
+
+[ -z "$SUBCOMMANDS" ] && ./$DRIVER_NAME
+
+_last_command() {
+  echo "$1" | tail -1
+}
+
+LAST_SUBCOMMAND=$(_last_command "$SUBCOMMANDS")
+
+executed=""
+for command in $SUBCOMMANDS
+do
+  ! _valid_command "$command" && \
+      _command_error "invalid subcommand '$command'" && exit 1
+  if [ -d "$command" ]; then
+    cd $command 2> /dev/null 
+  elif [ -f "$command" ]; then
+    ./$command && executed=true 
+  fi
+  [ "$executed" != 'true' ] && [ "$LAST_SUBCOMMAND" == "$command" ] && \
+      ./$DRIVER_NAME 
+done
+
