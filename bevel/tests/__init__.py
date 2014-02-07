@@ -23,3 +23,16 @@ class BevelTestCase(unittest.TestCase):
         
     def test_get_bin_missing(self):
         self.assertEquals(self.bevel._get_bin('/foo/bar'), None)        
+
+    def test_command_is_valid(self):
+        for cmd in ['foo', '48']:
+            self.assertTrue(self.bevel._is_valid_name(cmd))
+        for cmd in ['_foo', '-', '']:
+            self.assertFalse(self.bevel._is_valid_name(cmd))
+
+    def test_args_are_valid(self):
+        self.assertFalse(self.bevel._args_are_valid(['-lskdjf'])) 
+        self.assertFalse(self.bevel._args_are_valid(['foo bar'])) 
+        self.assertTrue(self.bevel._args_are_valid([])) 
+        self.assertTrue(self.bevel._args_are_valid(['foo', 'bar'])) 
+
