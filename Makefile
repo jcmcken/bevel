@@ -1,4 +1,4 @@
 .PHONY: test
 
 test:
-	nosetests bevel/tests/
+	nosetests bevel/tests/ --with-coverage --cover-package bevel

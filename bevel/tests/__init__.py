@@ -2,7 +2,13 @@ import unittest
 from bevel import Bevel
 from mock import Mock, patch
 
-class BevelTestCase(unittest.TestCase):
+class BevelInitializationTestCases(unittest.TestCase):
+    def test_different_paths(self):
+        Bevel('/foo/')
+        Bevel('/foo')
+        Bevel('foo')
+
+class BevelStubTestCases(unittest.TestCase):
     def setUp(self):
         self.bevel = Bevel('/foo')
 
@@ -12,9 +18,18 @@ class BevelTestCase(unittest.TestCase):
         self.assertEquals(self.bevel._args_to_path(['bar', 'baz']), '/foo/bar/baz')
 
     @patch('os.path.isdir')
-    def test_get_bin_dir(self, isdir):
+    @patch('os.path.isfile')
+    def test_get_bin_dir(self, isdir, isfile):
         isdir.return_value = True
+        isfile.return_value = True
         self.assertEquals(self.bevel._get_bin('/foo/bar'), '/foo/bar/_driver')        
+    
+    @patch('os.path.isdir')
+    @patch('os.path.isfile')
+    def test_get_bin_dir(self, isfile, isdir):
+        isdir.return_value = True
+        isfile.return_value = False
+        self.assertEquals(self.bevel._get_bin('/foo/bar'), None)        
 
     @patch('os.path.isfile')
     def test_get_bin(self, isfile):
@@ -36,3 +51,22 @@ class BevelTestCase(unittest.TestCase):
         self.assertTrue(self.bevel._args_are_valid([])) 
         self.assertTrue(self.bevel._args_are_valid(['foo', 'bar'])) 
 
+class BevelRealTestCases(unittest.TestCase):
+    fixture_dir = 'bevel/tests/fixtures/command'
+
+    def setUp(self):
+        self.bevel = Bevel(self.fixture_dir)
+
+    def test_has_driver(self):
+        for path in [self.fixture_dir, "%s/hasdriver" % self.fixture_dir]:
+            self.assertTrue(self.bevel._has_driver(path))
+        for path in ["%s/nodriver" % self.fixture_dir]:
+            self.assertFalse(self.bevel._has_driver(path))
+
+    def test_subcommands(self):
+        self.assertEquals(self.bevel.subcommands([]), ['hasdriver'])
+        self.assertEquals(self.bevel.subcommands(['hasdriver', 'subcommand']), [])
+
+    def test_is_regular_command(self):
+        self.assertTrue(self.bevel._is_regular_command('%s/hasdriver/subcommand' % self.fixture_dir))
+        self.assertFalse(self.bevel._is_regular_command('%s/nodriver/subcommand' % self.fixture_dir))
