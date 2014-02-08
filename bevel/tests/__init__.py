@@ -51,6 +51,15 @@ class BevelStubTestCases(unittest.TestCase):
         self.assertTrue(self.bevel._args_are_valid([])) 
         self.assertTrue(self.bevel._args_are_valid(['foo', 'bar'])) 
 
+    def test_completion(self):
+        self.bevel._subcommands = Mock(return_value=['foo', 'bar', 'baz'])
+        self.assertEquals(self.bevel.complete(['f']), ['foo'])
+        self.assertEquals(self.bevel.complete([]), ['foo', 'bar', 'baz'])
+        self.assertEquals(self.bevel.complete(['b']), ['bar', 'baz'])
+        self.assertEquals(self.bevel.complete(['foo', 'b']), ['bar', 'baz'])
+        self.assertEquals(self.bevel.complete(['blah']), [])
+        self.assertEquals(self.bevel.complete(['foo', 'blah']), [])
+
 class BevelRealTestCases(unittest.TestCase):
     fixture_dir = 'bevel/tests/fixtures/command'
 
@@ -64,8 +73,8 @@ class BevelRealTestCases(unittest.TestCase):
             self.assertFalse(self.bevel._has_driver(path))
 
     def test_subcommands(self):
-        self.assertEquals(self.bevel.subcommands([]), ['hasdriver'])
-        self.assertEquals(self.bevel.subcommands(['hasdriver', 'subcommand']), [])
+        self.assertEquals(self.bevel._subcommands([]), ['hasdriver'])
+        self.assertEquals(self.bevel._subcommands(['hasdriver', 'subcommand']), [])
 
     def test_is_regular_command(self):
         self.assertTrue(self.bevel._is_regular_command('%s/hasdriver/subcommand' % self.fixture_dir))

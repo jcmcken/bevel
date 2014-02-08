@@ -44,7 +44,7 @@ class Bevel(object):
     def _args_are_valid(self, args):
         return all(map(self._is_valid_name, args))
 
-    def subcommands(self, args):
+    def _subcommands(self, args):
         bin, parsed_args = self._resolve_args(args)
         if not self._is_driver_file(bin):
             return []
@@ -100,6 +100,14 @@ class Bevel(object):
     def run(self, args):
         bin, remainder_args = self._resolve_args(self._parse_args(args))
         self._run(bin, remainder_args)
+
+    def complete(self, args):
+        subcommands = self._subcommands(args)
+        if not args:
+            result = subcommands
+        else:
+            result = [ i for i in subcommands if i.startswith(args[-1]) ]
+        return result
 
 def create_cli():
     cli = optparse.OptionParser()
