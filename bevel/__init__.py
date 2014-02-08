@@ -109,6 +109,9 @@ class Bevel(object):
             result = [ i for i in subcommands if i.startswith(args[-1]) ]
         return result
 
+    def complete(self, args):
+        return self._complete(self._parse_args(args))
+
 def create_cli():
     cli = optparse.OptionParser()
     cli.add_option('-a', '--args', default="",
@@ -117,6 +120,8 @@ def create_cli():
         help="The directory location of your `bevel' scripts")
     cli.add_option('-V', '--verify', action='store_true',
         help="Verify that your `bevel' commands are properly set up and configured")
+    cli.add_option('-c', '--complete', action='store_true',
+        help="Instead of running your `bevel' app, just autocomplete the last subcommand")
     cli.add_option('-d', '--debug', action='store_true',
         help="Print debug messages to stdout")
     return cli
@@ -139,6 +144,11 @@ def main(argv=None):
 
     if opts.verify:
         app.verify()
+        raise SystemExit
+
+    if opts.complete:
+        completion = app.complete(opts.args)
+        print '\n'.join(completion)
         raise SystemExit
 
     app.run(opts.args)
