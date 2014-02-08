@@ -53,12 +53,12 @@ class BevelStubTestCases(unittest.TestCase):
 
     def test_completion(self):
         self.bevel._subcommands = Mock(return_value=['foo', 'bar', 'baz'])
-        self.assertEquals(self.bevel.complete(['f']), ['foo'])
-        self.assertEquals(self.bevel.complete([]), ['foo', 'bar', 'baz'])
-        self.assertEquals(self.bevel.complete(['b']), ['bar', 'baz'])
-        self.assertEquals(self.bevel.complete(['foo', 'b']), ['bar', 'baz'])
-        self.assertEquals(self.bevel.complete(['blah']), [])
-        self.assertEquals(self.bevel.complete(['foo', 'blah']), [])
+        self.assertEquals(self.bevel._complete(['f']), ['foo'])
+        self.assertEquals(self.bevel._complete([]), ['foo', 'bar', 'baz'])
+        self.assertEquals(self.bevel._complete(['b']), ['bar', 'baz'])
+        self.assertEquals(self.bevel._complete(['foo', 'b']), ['bar', 'baz'])
+        self.assertEquals(self.bevel._complete(['blah']), [])
+        self.assertEquals(self.bevel._complete(['foo', 'blah']), [])
 
 class BevelRealTestCases(unittest.TestCase):
     fixture_dir = 'bevel/tests/fixtures/command'

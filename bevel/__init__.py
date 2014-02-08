@@ -101,7 +101,7 @@ class Bevel(object):
         bin, remainder_args = self._resolve_args(self._parse_args(args))
         self._run(bin, remainder_args)
 
-    def complete(self, args):
+    def _complete(self, args):
         subcommands = self._subcommands(args)
         if not args:
             result = subcommands
