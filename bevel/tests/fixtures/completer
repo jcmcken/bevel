@@ -1,0 +1,5 @@
+#!/bin/bash
+
+COMPLETER="bevel -b bevel/tests/fixtures/myapplib -c "
+
+complete -C "$COMPLETER" myapp

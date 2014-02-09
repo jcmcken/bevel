@@ -1,0 +1,3 @@
+#!/bin/bash
+
+bevel --bindir bevel/tests/fixtures/myapplib --args "$*"
