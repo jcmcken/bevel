@@ -193,14 +193,22 @@ class Bevel(object):
             code = self._run(bin, remainder_args)
         return code
 
+    def _parse_completion_args(self, args):
+        parsed_args = self._parse_args(args)
+        if args.endswith(' '):
+            parsed_args.append('')
+        return parsed_args
+
     def _get_completion_args(self):
         comp_line = self._get_comp_line() or ''
-        parsed_args = self._parse_args(comp_line)
+        parsed_args = self._parse_completion_args(comp_line)
         parsed_args.pop(0)
         return parsed_args
 
     def _get_comp_line(self):
-        return os.environ.get('COMP_LINE') or os.environ.get('COMMAND_LINE')
+        result = os.environ.get('COMP_LINE') or os.environ.get('COMMAND_LINE')
+        LOG.debug('COMP_LINE is "%s"' % result)
+        return result
 
     def _in_completion(self):
         return bool(self._get_comp_line())
@@ -210,6 +218,7 @@ class Bevel(object):
             args = self._get_completion_args()
 
         subcommands = self._subcommands(args)
+
         if not args:
             result = subcommands
         else:
@@ -217,7 +226,7 @@ class Bevel(object):
         return result
 
     def complete(self, args=[]):
-        return self._complete(self._parse_args(args))
+        return self._complete(self._parse_completion_args(args))
 
     def _verify(self):
         bad = []
