@@ -269,7 +269,7 @@ def create_cli():
     cli.add_option('-n', '--noop', action='store_true',
         help="Do everything normally, except don't run any scripts.")
     cli.add_option('-d', '--debug', action='store_true',
-        help="Print debug messages to stdout")
+        help="Print debug messages to stderr")
     cli.add_option('-V', '--verify', action='store_true',
         help="Verify that your `bevel' commands are properly set up and configured."
              " This option is for development purposes. Returns a data structure "
