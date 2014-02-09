@@ -40,9 +40,35 @@ Valid subcommands: cluster, create, destroy, migrate
 
 ```
 
-## Usage
+## Writing a ``bevel`` App
 
-To use ``bevel``, generate a wrapper script and call ``bevel`` with the appropriate 
+To generate a ``bevel`` app, first plan out your command hierarchy with plain
+old directories and files. A directory corresponds to a command which has 
+subcommands, and a file corresponds to a command which does not have other
+subcommands.
+
+Next, each directory needs to have a special file called ``_driver``. This script
+implements the execution of the parent command. Typically, this script will simply
+print the valid subcommands.
+
+Lastly, you need to ensure that each of your scripts meets two criteria:
+
+* Scripts must be readable and executable.
+* Scripts must have a shebang line (e.g. ``#!/bin/bash``) which indicates the runtime
+  to use when executing the script.
+
+If any of these criteria are not true, ``bevel`` will simply disregard the file (i.e.
+won't consider it a command).
+
+To aid in the detection of problems, ``bevel`` provides the ``--verify`` option. When 
+run against your command hierarchy, it will let you know if there are any obvious
+problems. In some cases (e.g. if you have a ``README``), "bad" results are simply
+false positives and can be ignored.
+
+## Wiring Up the App
+
+Now that you have your command hierarchy set up, you'll need to write a driver.
+To do this, simply generate a wrapper script and call ``bevel`` with the appropriate 
 arguments.
 
 For example, create ``/usr/bin/myapp`` with these contents:
@@ -52,6 +78,12 @@ For example, create ``/usr/bin/myapp`` with these contents:
 
 bevel --bindir /path/to/myapp/ --args "$*"
 ```
+
+(Here, ``/path/to/myapp/`` is the directory containing the top-most ``_driver`` file 
+in your command hierarchy.)
+
+When a user executes this wrapper, ``bevel`` will delegate execution to the appropriate
+command or subcommand in the command hierarchy you established previously. 
 
 ## Autocompletion
 
