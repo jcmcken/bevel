@@ -205,21 +205,30 @@ class Bevel(object):
         return self._complete(self._parse_args(args))
 
     def _verify(self):
-        bad = {
-          'permissions': {
-            'dirs': [],
-            'files': [],
-          }
-        }
+        bad = []
         for basedir, dirs, files in os.walk(self.bin_dir):
             for dir in dirs:
                 fullname = os.path.join(basedir, dir)
                 if not os.access(fullname, os.R_OK|os.X_OK):
-                    bad['permissions']['dirs'].append(fullname)
+                    bad.append({
+                        'type': 'directory', 
+                        'reason': 'could not read or execute',
+                        'name': fullname,
+                    })
             for file in files:
                 fullname = os.path.join(basedir, file)
                 if not self._is_runnable(fullname):
-                    bad['permissions']['files'].append(fullname)
+                    bad.append({
+                        'type': 'file', 
+                        'reason': 'could not read or execute',
+                        'name': fullname,
+                    })
+                elif not open(fullname, 'r').readline().startswith('#!'):
+                    bad.append({
+                        'type': 'file', 
+                        'reason': 'missing shebang',
+                        'name': fullname,
+                    })
         return bad
 
     def verify(self):
