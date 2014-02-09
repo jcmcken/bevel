@@ -61,7 +61,7 @@ class BevelStubTestCases(unittest.TestCase):
         self.assertEquals(self.bevel._complete(['foo', 'blah']), [])
 
 class BevelRealTestCases(unittest.TestCase):
-    fixture_dir = 'bevel/tests/fixtures/command'
+    fixture_dir = 'bevel/tests/fixtures/myapplib'
 
     def setUp(self):
         self.bevel = Bevel(self.fixture_dir)
@@ -73,9 +73,24 @@ class BevelRealTestCases(unittest.TestCase):
             self.assertFalse(self.bevel._has_driver(path))
 
     def test_subcommands(self):
-        self.assertEquals(self.bevel._subcommands([]), ['hasdriver'])
+        self.assertEquals(self.bevel._subcommands([]), ['hasdriver', 'hasdriver2'])
         self.assertEquals(self.bevel._subcommands(['hasdriver', 'subcommand']), [])
 
     def test_is_regular_command(self):
         self.assertTrue(self.bevel._is_regular_command('%s/hasdriver/subcommand' % self.fixture_dir))
         self.assertFalse(self.bevel._is_regular_command('%s/nodriver/subcommand' % self.fixture_dir))
+
+    def test_completion(self):
+        for str_args, expected in (
+          ('hasdrive ', []),
+          ('hasdrive', ['hasdriver', 'hasdriver2']),
+          ('hasdriver ', ['subcommand']),
+          ('hasdriver', ['hasdriver', 'hasdriver2']),
+          ('hasdriver s', ['subcommand']),
+          ('hasdriver f', []),
+        ):
+            self.assertEquals(self.bevel.complete(str_args), expected)
+
+    def test_appears_as_command(self):
+        self.assertTrue(self.bevel._appears_as_command('%s/hasdriver' % self.fixture_dir))
+        self.assertFalse(self.bevel._appears_as_command('%s/hasbaddriver' % self.fixture_dir))

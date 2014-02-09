@@ -71,6 +71,7 @@ class Bevel(object):
         basedir = os.path.dirname(bin)
         result = [ i for i in os.listdir(basedir) if self._appears_as_command(os.path.join(basedir, i)) ]
         LOG.debug("subcommands for %s are %s" % (args, result))
+        result.sort()
         return result
 
     def _appears_as_command(self, path):
