@@ -170,25 +170,28 @@ class Bevel(object):
         LOG.info("running script '%s' with args %s" % (script, args))
         now = time.time()
         full_args = [script] + args
-        run = False
         try:
-            subprocess.Popen(full_args)
-            run = True
+            proc = subprocess.Popen(full_args)
+            proc.communicate()
+            code = proc.returncode
         except OSError, e:
             if e.errno == errno.ENOEXEC:
                 raise InternalError('could not determine subcommand runtime')
             else: raise
                 
-        LOG.info("command finished in %3f seconds" % (time.time() - now))
+        LOG.info("command finished in %3f seconds with return code %d" % ((time.time() - now), code))
+        return code
 
     def run(self, args, noop=False):
         bin, remainder_args = self._resolve_args(self._parse_args(args))
         # TODO: don't call bin with remainder args if command resolves
         #       fuzzily; just call ``self._run(bin)`` 
+        code = None
         if bin is None:
             raise InternalError('could not resolve any valid, runnable scripts')
         if not noop:
-            self._run(bin, remainder_args)
+            code = self._run(bin, remainder_args)
+        return code
 
     def _complete(self, args):
         subcommands = self._subcommands(args)
@@ -274,7 +277,8 @@ def main(argv=None):
         raise SystemExit
 
     try:
-        app.run(opts.args, noop=opts.noop)
+        returncode = app.run(opts.args, noop=opts.noop)
+        raise SystemExit(returncode)
     except InternalError, e:
         sys.stderr.write("%s: internal error: %s\n" % (app.name, e.args[0]))
         raise SystemExit(1)
