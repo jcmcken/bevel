@@ -64,8 +64,8 @@ class Bevel(object):
         return all(map(self._is_valid_name, args))
 
     def _subcommands(self, args):
-        bin, parsed_args = self._resolve_args(args)
-        if not self._is_driver_file(bin):
+        bin = self._args_to_bin(args)
+        if not bin or not self._is_driver_file(bin):
             return []
 
         basedir = os.path.dirname(bin)
@@ -83,7 +83,7 @@ class Bevel(object):
         """
         Whether a particular command directory has a driver file
         """
-        result = os.path.isfile(os.path.join(path, self.DRIVER_NAME))
+        result = self._is_driver_file(os.path.join(path, self.DRIVER_NAME))
         LOG.debug("path '%s' has a driver? %s" % (path, result))
         return result
 
@@ -217,12 +217,25 @@ class Bevel(object):
         if self._in_completion():
             args = self._get_completion_args()
 
-        subcommands = self._subcommands(args)
+        if args:
+            parent = args[0:-1]
+            last = args[-1]
+        else:
+            parent = []
+            last = None
 
-        if not args:
+        parent_subcommands = self._subcommands(parent)
+        subcommands = self._subcommands(args)
+        
+        command_matches = [ i for i in parent_subcommands if last is not None and i.startswith(last) ]
+
+        if command_matches:
+            result = command_matches
+        elif not args:
             result = subcommands
         else:
             result = [ i for i in subcommands if i.startswith(args[-1]) ]
+        LOG.debug("completions for %s are %s" % (args, result))
         return result
 
     def complete(self, args=[]):
