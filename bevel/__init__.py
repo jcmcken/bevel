@@ -22,7 +22,7 @@ for lib in ['json', 'simplejson']:
 
 LOG = logging.getLogger('bevel')
 
-_RE_VALID_COMMAND = '^[a-zA-Z0-9]+$'
+_RE_VALID_COMMAND = '^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$'
 RE_VALID_COMMAND = re.compile(_RE_VALID_COMMAND)
 
 class InvalidCommand(RuntimeError): pass

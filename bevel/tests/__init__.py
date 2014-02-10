@@ -40,9 +40,9 @@ class BevelStubTestCases(unittest.TestCase):
         self.assertEquals(self.bevel._get_bin('/foo/bar'), None)        
 
     def test_command_is_valid(self):
-        for cmd in ['foo', '48']:
+        for cmd in ['foo', '48', 'foo-bar', 'foo-bar-baz']:
             self.assertTrue(self.bevel._is_valid_name(cmd))
-        for cmd in ['_foo', '-', '']:
+        for cmd in ['_foo', '-', 'foo-', '--bar', 'foo--bar', 'foo--', 'foo-bar--baz']:
             self.assertFalse(self.bevel._is_valid_name(cmd))
 
     def test_args_are_valid(self):
@@ -84,7 +84,7 @@ class BevelRealTestCases(unittest.TestCase):
         for str_args, expected in (
           ('hasdrive ', []),
           ('hasdrive', ['hasdriver', 'hasdriver2']),
-          ('hasdriver ', ['subcommand']),
+          ('hasdriver ', ['dashed-command', 'subcommand']),
           ('hasdriver', ['hasdriver', 'hasdriver2']),
           ('hasdriver s', ['subcommand']),
           ('hasdriver f', []),
