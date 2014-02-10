@@ -264,7 +264,7 @@ class Bevel(object):
                         'reason': 'could not read or execute',
                         'name': fullname,
                     })
-                elif not open(fullname, 'r').readline().startswith('#!'):
+                if not open(fullname, 'r').readline().startswith('#!'):
                     bad.append({
                         'type': 'file', 
                         'reason': 'missing shebang',
