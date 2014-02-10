@@ -1,7 +1,7 @@
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 
 Name:           bevel 
-Version:        0.1.0
+Version:        0.2.0
 Release:        1%{?dist}
 Summary:        A simple, shell script subcommand framework
 
@@ -44,5 +44,7 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/*
 
 %changelog
+* Wed Feb 12 2014 Jon McKenzie <jcmcken@gmail.com>
+Bump to release 0.2.0
 * Sun Feb 09 2014 Jon McKenzie <jcmcken@gmail.com>
 Initial release
