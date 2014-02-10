@@ -32,9 +32,9 @@ class InternalError(RuntimeError): pass
 class Bevel(object):
     DRIVER_NAME = '_driver'
 
-    def __init__(self, bin_dir):
+    def __init__(self, bin_dir, app_name=None):
         self.bin_dir = bin_dir.rstrip('/')
-        self.name = os.path.basename(self.bin_dir)
+        self.name = app_name or os.path.basename(self.bin_dir)
         if not self._is_valid_name(self.name):
             raise InvalidBevel(self.bin_dir) 
 
@@ -300,6 +300,8 @@ def create_cli():
         help="Verify that your `bevel' commands are properly set up and configured."
              " This option is for development purposes. Returns a data structure "
              "containing all of the directories or files that may be incorrect.")
+    cli.add_option('-N', '--app-name', 
+        help="Override the default app name (which is the basename of BINDIR)")
     return cli
 
 def main(argv=None):
@@ -315,7 +317,7 @@ def main(argv=None):
     if not os.path.isdir(opts.bindir):
         cli.error('no such directory "%s"' % opts.bindir)
 
-    app = Bevel(opts.bindir)
+    app = Bevel(opts.bindir, app_name=opts.app_name)
 
     if opts.verify:
         print app.verify()
