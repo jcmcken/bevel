@@ -57,7 +57,19 @@ Lastly, you need to ensure that each of your scripts meets two criteria:
 * Scripts must have a shebang line (e.g. ``#!/bin/bash``) which indicates the runtime
   to use when executing the script.
 
-If any of these criteria are not true, ``bevel`` will simply disregard the file (i.e.
+The only caveat to these criteria is that you may leave driver scripts (``_driver``) 
+empty. When this is done, ``bevel`` will print a default usage message which simply
+shows the valid subcommands for the parent command, e.g.:
+
+```text
+$ cat /path/to/myapp/_driver
+$ myapp
+usage: myapp <subcommand> [arguments] [options]
+
+Valid subcommands are: db 
+``` 
+
+Other than that, if any of these criteria are not true, ``bevel`` will simply disregard the file (i.e.
 won't consider it a command).
 
 To aid in the detection of problems, ``bevel`` provides the ``--verify`` option. When 
