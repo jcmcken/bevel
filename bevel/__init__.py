@@ -194,15 +194,28 @@ class Bevel(object):
         return code
 
     def run(self, args, noop=False):
-        bin, remainder_args = self._resolve_args(self._parse_args(args))
+        parsed_args = self._parse_args(args)
+        bin, remainder_args = self._resolve_args(parsed_args)
         # TODO: don't call bin with remainder args if command resolves
         #       fuzzily; just call ``self._run(bin)`` 
         code = None
         if bin is None:
             raise InternalError('could not resolve any valid, runnable scripts')
-        if not noop:
+        if self._is_driver_file(bin) and self._is_empty(bin):
+            subcommands = self._subcommands(parsed_args)
+            if subcommands:
+                print self._default_usage("%s %s" % (self.name, args), subcommands)
+            else:
+                LOG.warn("command '%s' is a parent command, but has no subcommands" % args)
+        elif not noop:
             code = self._run(bin, remainder_args)
         return code
+
+    def _default_usage(self, command_str, subcommands):
+        return """usage: %s <subcommand> [arguments] [options]
+
+Valid subcommands are: %s
+""" % (command_str, ', '.join(subcommands))
 
     def _parse_completion_args(self, args):
         parsed_args = self._parse_args(args)
@@ -223,6 +236,9 @@ class Bevel(object):
 
     def _in_completion(self):
         return bool(self._get_comp_line())
+
+    def _is_empty(self, path):
+        return not bool(open(path).readline().strip())
 
     def _complete(self, args=[]):
         if self._in_completion():
