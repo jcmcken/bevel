@@ -29,6 +29,13 @@ class InvalidCommand(RuntimeError): pass
 class InvalidBevel(ValueError): pass
 class InternalError(RuntimeError): pass
 
+# for py 2.4 compat
+def all(iterable):
+    for element in iterable:
+        if not element:
+            return False
+    return True
+
 class Bevel(object):
     DRIVER_NAME = '_driver'
 
