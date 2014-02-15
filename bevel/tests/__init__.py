@@ -1,5 +1,6 @@
 import unittest
-from bevel import Bevel
+import errno
+from bevel import Bevel, InternalError
 from mock import Mock, patch
 
 class BevelInitializationTestCases(unittest.TestCase):
@@ -59,6 +60,34 @@ class BevelStubTestCases(unittest.TestCase):
         self.assertEquals(self.bevel._complete(['foo', 'b']), ['bar', 'baz'])
         self.assertEquals(self.bevel._complete(['blah']), [])
         self.assertEquals(self.bevel._complete(['foo', 'blah']), [])
+
+    def test_resolve_no_args(self):
+        self.assertEquals(self.bevel._resolve_args([]), (None, []))
+
+    def test_resolve_args_candidate(self):
+        self.bevel._args_to_bin =  Mock(return_value='/foo/bar')
+        self.assertEquals(self.bevel._resolve_args(['blah']), ('/foo/bar', []))
+
+    def test_resolve_args_candidate_miss(self):
+        self.bevel._args_to_bin =  Mock(return_value=None)
+        self.assertEquals(self.bevel._resolve_args(['blah']), (None, ['blah']))
+
+    @patch('subprocess.Popen')
+    def test_missing_runtime(self, popen):
+        popen.side_effect = OSError(errno.ENOEXEC, 'foo')
+        self.assertRaises(InternalError, self.bevel._run, 'foo', ['bar'])
+
+    @patch('subprocess.Popen')
+    def test_other_popen_problem(self, popen):
+        popen.side_effect = OSError(9, 'foo')
+        self.assertRaises(OSError, self.bevel._run, 'foo', ['bar'])
+
+    @patch('subprocess.Popen')
+    def test_successful_run(self, popen):
+        proc = Mock()
+        proc.returncode = 0
+        popen.return_value = proc
+        self.assertEquals(self.bevel._run('foo', ['bar']), 0)
 
 class BevelRealTestCases(unittest.TestCase):
     fixture_dir = 'bevel/tests/fixtures/myapplib'
