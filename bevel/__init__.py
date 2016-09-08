@@ -337,7 +337,7 @@ def main(argv=None):
     cli = create_cli()
     opts, args = cli.parse_args(argv)
 
-    if opts.debug:
+    if opts.debug or os.environ.get('BEVEL_DEBUG'):
         enable_debug()
 
     if not opts.bindir:
