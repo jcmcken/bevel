@@ -174,7 +174,7 @@ class Bevel(object):
         LOG.debug('parsed "%s" as %s' % (args, parsed))
         return parsed
 
-    def _run(self, script, args):
+    def _run(self, script, args=[]):
         """
         Run ``script`` with arguments ``args``
         """
@@ -182,14 +182,14 @@ class Bevel(object):
         now = time.time()
         full_args = [script] + args
         try:
-            proc = subprocess.Popen(full_args)
-            proc.communicate()
+            proc = subprocess.Popen(full_args, close_fds=True, stdout=sys.stdout,
+              stderr=sys.stderr)
+            proc.wait()
             code = proc.returncode
         except OSError, e:
             if e.errno == errno.ENOEXEC:
                 raise InternalError('could not determine subcommand runtime')
             else: raise
-                
         LOG.info("command finished in %3f seconds with return code %d" % ((time.time() - now), code))
         return code
 
@@ -201,12 +201,17 @@ class Bevel(object):
         code = None
         if bin is None:
             raise InternalError('could not resolve any valid, runnable scripts')
-        if self._is_driver_file(bin) and self._is_empty(bin):
-            subcommands = self._subcommands(parsed_args)
-            if subcommands:
-                print self._default_usage("%s %s" % (self.name, args), subcommands)
-            else:
+        if self._is_driver_file(bin):
+            valid_subcommands = [ item for item in parsed_args if item not in remainder_args \
+              or remainder_args.remove(item) ]
+            command_str = ' '.join([self.name] + valid_subcommands)
+            subcommands = self._subcommands(valid_subcommands)
+            if not subcommands:
                 LOG.warn("command '%s' is a parent command, but has no subcommands" % args)
+            if self._is_empty(bin):
+                print self._default_usage(command_str, subcommands)
+            else:
+                self._run(bin)
         elif not noop:
             code = self._run(bin, remainder_args)
         return code

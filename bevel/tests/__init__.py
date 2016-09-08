@@ -2,6 +2,53 @@ import unittest
 import errno
 from bevel import Bevel, InternalError
 from mock import Mock, patch
+import StringIO
+import sys
+import tempfile
+
+class Stdout(object):
+    stream = sys.stdout
+
+    def __init__(self):
+        self.tempfile = tempfile.NamedTemporaryFile(delete=False)
+
+    def capture(self):
+        sys.stdout = self.tempfile
+
+    def get(self):
+        self.tempfile.flush()
+        self.tempfile.seek(0)
+        data = self.tempfile.read()
+        return data
+
+    def reset(self):
+        sys.stdout = sys.__stdout__
+        self._reset()
+
+    def _reset(self):
+        self.tempfile.close()
+        super(Stdout, self).__init__()
+
+class Stderr(Stdout):
+    stream = sys.stderr
+
+    def capture(self):
+        sys.stderr = self.tempfile
+
+    def reset(self):
+        sys.stderr = sys.__stderr__
+        self._reset()
+
+class TestCase(unittest.TestCase):
+    def setUp(self):
+        self.stdout = Stdout()
+        self.stderr = Stderr()
+        self.stdout.capture()
+        self.stderr.capture()
+
+    def tearDown(self):
+        self.stdout.reset()
+        self.stderr.reset()
 
 class BevelInitializationTestCases(unittest.TestCase):
     def test_different_paths(self):
@@ -89,11 +136,12 @@ class BevelStubTestCases(unittest.TestCase):
         popen.return_value = proc
         self.assertEquals(self.bevel._run('foo', ['bar']), 0)
 
-class BevelRealTestCases(unittest.TestCase):
+class BevelRealTestCases(TestCase):
     fixture_dir = 'bevel/tests/fixtures/myapplib'
 
     def setUp(self):
         self.bevel = Bevel(self.fixture_dir)
+        super(BevelRealTestCases, self).setUp()
 
     def test_has_driver(self):
         for path in [self.fixture_dir, "%s/hasdriver" % self.fixture_dir]:
@@ -102,7 +150,7 @@ class BevelRealTestCases(unittest.TestCase):
             self.assertFalse(self.bevel._has_driver(path))
 
     def test_subcommands(self):
-        self.assertEquals(self.bevel._subcommands([]), ['emptydriver', 'hasdriver', 'hasdriver2'])
+        self.assertEquals(self.bevel._subcommands([]), ['emptydriver', 'hasdriver', 'hasdriver2', 'takesargs'])
         self.assertEquals(self.bevel._subcommands(['hasdriver', 'subcommand']), [])
 
     def test_is_regular_command(self):
@@ -128,3 +176,12 @@ class BevelRealTestCases(unittest.TestCase):
         self.assertTrue(self.bevel._is_empty('%s/hasdriver2/_driver' % self.fixture_dir))
         self.assertFalse(self.bevel._is_empty('%s/hasdriver/_driver' % self.fixture_dir))
 
+    def test_missing_command(self):
+        self.bevel.run('emptydriver foo')
+        self.assertEquals('usage: myapplib emptydriver <subcommand> [arguments] '
+                          '[options]\n\nValid subcommands are: subcommand\n\n',
+                          self.stdout.get())
+
+    def test_argument_passing(self):
+        self.bevel.run('takesargs foo')
+        self.assertEquals('foo\n', self.stdout.get())
