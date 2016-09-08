@@ -21,6 +21,7 @@ for lib in ['json', 'simplejson']:
         pass
 
 LOG = logging.getLogger('bevel')
+LOG.setLevel(logging.CRITICAL)
 
 _RE_VALID_COMMAND = '^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$'
 RE_VALID_COMMAND = re.compile(_RE_VALID_COMMAND)
